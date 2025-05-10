@@ -46,6 +46,18 @@ app.post("/api/login", (req, res) => {
   }
 });
 
+let messages = [];
+
+app.get("/api/messages", (req, res) => {
+  res.json(messages);
+});
+
+app.post("/api/messages", (req, res) => {
+  const { user, text } = req.body;
+  messages.push({ user, text });
+  res.json({ message: "Message sent" });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
