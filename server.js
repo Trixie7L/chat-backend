@@ -65,21 +65,40 @@ app.get("/api/conversations", (req, res) => {
 
 app.get("/api/messages", (req, res) => {
   const { user1, user2 } = req.query;
-  const messages = readMessages().filter(
+  const messages = readMessages();
+  const conv = messages.filter(
     m =>
       (m.from === user1 && m.to === user2) ||
       (m.from === user2 && m.to === user1)
   );
-  res.json(messages);
+
+  // Mark messages as read
+  let updated = false;
+  conv.forEach(m => {
+    if (m.to === user1 && !m.read) {
+      m.read = true;
+      updated = true;
+    }
+  });
+  if (updated) writeMessages(messages);
+
+  res.json(conv);
 });
 
 app.post("/api/send", (req, res) => {
   const { from, to, text } = req.body;
   const messages = readMessages();
   const timestamp = new Date().toISOString();
-  messages.push({ from, to, text, timestamp });
+  messages.push({ from, to, text, timestamp, read: false });
   writeMessages(messages);
   res.json({ message: "Message sent" });
+});
+
+app.get("/api/unread", (req, res) => {
+  const { user } = req.query;
+  const messages = readMessages();
+  const unread = messages.filter(m => m.to === user && !m.read);
+  res.json(unread);
 });
 
 app.listen(PORT, () => {
